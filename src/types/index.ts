@@ -1,4 +1,5 @@
 export interface Product {
+  specifications: any;
   id: string;
   name: string;
   name_fr: string;
@@ -40,6 +41,8 @@ export interface CartItem {
 }
 
 export interface Order {
+  user_email: string;
+  order_items: any;
   id: string;
   user_id: string;
   status: 'processing' | 'dispatched' | 'delivered' | 'cancelled';

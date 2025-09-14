@@ -3,6 +3,8 @@ import { Minus, Plus, Trash2, CreditCard, ShoppingBag } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useStore } from '../../store/useStore';
 import { CheckoutForm } from './CheckoutForm';
+import AuthModal from '../auth/AuthModal';
+import { Modal } from '../ui/Modal';
 
 interface CartModalProps {
   onClose: () => void;
@@ -22,6 +24,7 @@ export default function CartModal({ onClose }: CartModalProps) {
   
   const [showCheckout, setShowCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
 
   const translations = {
     en: {
@@ -245,13 +248,17 @@ export default function CartModal({ onClose }: CartModalProps) {
               <p className="text-gray-600 mb-4">{t.loginRequired}</p>
               <Button
                 variant="primary"
-                onClick={onClose}
+                onClick={() => setShowAuth(true)}
                 className="w-full"
               >
                 Login to Checkout
               </Button>
             </div>
           )}
+      {/* Auth Modal for login/signup */}
+      <Modal isOpen={showAuth} onClose={() => setShowAuth(false)} title="Login or Sign Up">
+        <AuthModal onClose={() => setShowAuth(false)} />
+      </Modal>
 
           <Button
             variant="ghost"

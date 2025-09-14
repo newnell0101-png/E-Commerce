@@ -259,7 +259,7 @@ const ShopPage: React.FC = () => {
                         {t.featured}
                       </span>
                     )}
-                    {product.discount_percentage > 0 && (
+                    {(typeof product.discount_percentage === 'number' && product.discount_percentage > 0) && (
                       <span className="bg-red-500 text-white px-2 py-1 text-xs font-bold rounded">
                         -{product.discount_percentage}%
                       </span>
@@ -298,7 +298,7 @@ const ShopPage: React.FC = () => {
                   {/* Price and Actions */}
                   <div className="flex items-center justify-between">
                     <div>
-                      {product.discount_percentage > 0 ? (
+                      {typeof product.discount_percentage === 'number' && product.discount_percentage > 0 ? (
                         <div className="flex items-center space-x-2">
                           <span className="text-lg font-bold text-green-600">
                             {Math.round(product.price * (1 - product.discount_percentage / 100)).toLocaleString()} FCFA

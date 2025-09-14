@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Heart, Share2, ShoppingCart, Truck, Shield, RefreshCw, MessageCircle } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { db } from '../lib/supabase';
+import { db, supabase } from '../lib/supabase';
 import { Product } from '../types';
 import { Button } from '../components/ui/Button';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -110,10 +110,18 @@ const ProductPage: React.FC = () => {
 
     try {
       if (isWishlisted) {
-        await db.removeFromWishlist(user.id, product.id);
+        // Remove from wishlist
+        await supabase
+          .from('wishlist')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('product_id', product.id);
         setIsWishlisted(false);
       } else {
-        await db.addToWishlist(user.id, product.id);
+        // Add to wishlist
+        await supabase
+          .from('wishlist')
+          .insert([{ user_id: user.id, product_id: product.id }]);
         setIsWishlisted(true);
       }
     } catch (error) {
@@ -338,7 +346,7 @@ const ProductPage: React.FC = () => {
                     {Object.entries(product.specifications).map(([key, value]) => (
                       <div key={key} className="flex justify-between">
                         <dt className="font-medium text-gray-700">{key}:</dt>
-                        <dd className="text-gray-900">{value}</dd>
+                        <dd className="text-gray-900">{String(value)}</dd>
                       </div>
                     ))}
                   </dl>

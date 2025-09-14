@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, CreditCard, Smartphone, Phone, MapPin, User, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useStore } from '../../store/useStore';
-import { db } from '../../lib/supabase';
+import { db, supabase } from '../../lib/supabase';
 import { paymentMethods, MobileMoneyProcessor, CODProcessor } from '../../utils/payments';
 
 interface CheckoutFormProps {
@@ -130,9 +130,10 @@ export function CheckoutForm({ onSuccess, onBack }: CheckoutFormProps) {
 
   const processPayment = async () => {
     try {
+      // Always refresh session before payment
+      await supabase.auth.getSession();
       const total = getCartTotal();
       let result;
-      
       if (paymentInfo.method === 'cod') {
         result = await CODProcessor.processCODOrder();
       } else if (paymentInfo.method === 'momo') {
@@ -146,14 +147,12 @@ export function CheckoutForm({ onSuccess, onBack }: CheckoutFormProps) {
           paymentInfo.phone || shippingInfo.phone
         );
       }
-      
       setPaymentResult(result);
-      
       // Process the result immediately
       if (result?.success || paymentInfo.method === 'cod') {
         await createOrder(result);
       } else {
-        setError(result?.error || t.paymentFailed);
+        setError(result && 'error' in result && result.error ? result.error : t.paymentFailed);
         setLoading(false);
         setCurrentStep('payment');
       }

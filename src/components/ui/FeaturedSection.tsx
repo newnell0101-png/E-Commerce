@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Star, Clock, Zap } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { db } from '../../lib/supabase';
-import { mockProducts } from '../../data/mockData';
 import type { Product } from '../../types';
 
 interface FeaturedSectionProps {
@@ -11,9 +10,7 @@ interface FeaturedSectionProps {
 
 export function FeaturedSection({ onProductClick }: FeaturedSectionProps) {
   const { language, colorTheme } = useStore();
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>(
-    mockProducts.filter(p => p.is_featured || p.discount_percentage > 0)
-  );
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]); // <-- Fix: start with empty array
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const translations = {
@@ -114,7 +111,7 @@ export function FeaturedSection({ onProductClick }: FeaturedSectionProps) {
                         <Zap className="w-4 h-4 mr-2" />
                         {t.hotDeal}
                       </span>
-                      {product.discount_percentage > 0 && (
+                      {(product.discount_percentage ?? 0) > 0 && (
                         <span className="bg-red-500 px-4 py-2 rounded-full text-sm font-semibold flex items-center animate-pulse-slow">
                           <Clock className="w-4 h-4 mr-2" />
                           {t.limitedTime}
@@ -132,13 +129,13 @@ export function FeaturedSection({ onProductClick }: FeaturedSectionProps) {
                     
                     <div className="flex items-center space-x-4">
                       <div className="text-3xl font-bold">
-                        {product.discount_percentage > 0 ? (
+                        {(product.discount_percentage ?? 0) > 0 ? (
                           <>
                             <span className="line-through opacity-60 text-xl mr-2">
                               {product.price.toLocaleString()} FCFA
                             </span>
                             <span>
-                              {Math.round(product.price * (1 - product.discount_percentage / 100)).toLocaleString()} FCFA
+                              {Math.round(product.price * (1 - (product.discount_percentage ?? 0) / 100)).toLocaleString()} FCFA
                             </span>
                           </>
                         ) : (
@@ -146,7 +143,7 @@ export function FeaturedSection({ onProductClick }: FeaturedSectionProps) {
                         )}
                       </div>
                       
-                      {product.discount_percentage > 0 && (
+                      {(product.discount_percentage ?? 0) > 0 && (
                         <span className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-bold">
                           {t.save} {product.discount_percentage}%
                         </span>
@@ -207,7 +204,7 @@ export function FeaturedSection({ onProductClick }: FeaturedSectionProps) {
                   className="w-full h-48 object-cover group-hover:scale-125 transition-transform duration-1000"
                 />
                 
-                {product.discount_percentage > 0 && (
+                { (product.discount_percentage ?? 0) > 0 && (
                   <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-bounce-slow">
                     -{product.discount_percentage}%
                   </div>
@@ -229,10 +226,10 @@ export function FeaturedSection({ onProductClick }: FeaturedSectionProps) {
                 
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
-                    {product.discount_percentage > 0 ? (
+                    {(product.discount_percentage ?? 0) > 0 ? (
                       <>
                         <span className="text-lg font-bold text-green-600 animate-pulse-slow">
-                          {Math.round(product.price * (1 - product.discount_percentage / 100)).toLocaleString()} FCFA
+                          {Math.round(product.price * (1 - (product.discount_percentage ?? 0) / 100)).toLocaleString()} FCFA
                         </span>
                         <span className="text-sm text-gray-500 line-through">
                           {product.price.toLocaleString()} FCFA

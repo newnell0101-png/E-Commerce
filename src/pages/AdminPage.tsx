@@ -19,7 +19,7 @@ import {
   X
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { db, auth } from '../lib/supabase';
+import { db, auth, storage } from '../lib/supabase';
 import { Product, User, Order, Category } from '../types';
 import { Button } from '../components/ui/Button';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -56,6 +56,7 @@ const AdminPage: React.FC = () => {
     stock: '',
     active: true
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
   
   const [categoryForm, setCategoryForm] = useState({
     id: '',
@@ -151,6 +152,8 @@ const AdminPage: React.FC = () => {
       password: 'Password',
       confirmPassword: 'Confirm Password',
       isAdmin: 'Is Admin',
+      fullName: 'Full Name',
+      phone: 'Phone',
       appSettings: 'App Settings',
       siteName: 'Site Name',
       currency: 'Currency',
@@ -213,6 +216,27 @@ const AdminPage: React.FC = () => {
       itemAdded: 'Élément ajouté avec succès!',
       itemUpdated: 'Élément mis à jour avec succès!',
       itemDeleted: 'Élément supprimé avec succès!',
+      addUser: 'Ajouter Utilisateur',
+      editUser: 'Modifier Utilisateur',
+      deleteUser: 'Supprimer Utilisateur',
+      password: 'Mot de passe',
+      confirmPassword: 'Confirmer le mot de passe',
+      isAdmin: 'Est Admin',
+      fullName: 'Nom complet',
+      phone: 'Téléphone',
+      appSettings: 'Paramètres de l\'application',
+      siteName: 'Nom du site',
+      currency: 'Devise',
+      taxRate: 'Taux de taxe (%)',
+      shippingFee: 'Frais de livraison',
+      freeShippingThreshold: 'Seuil de livraison gratuite',
+      maintenanceMode: 'Mode maintenance',
+      allowGuestCheckout: 'Autoriser la commande invité',
+      maxCartItems: 'Articles max. dans le panier',
+      sessionTimeout: 'Expiration de session (minutes)',
+      saveSettings: 'Enregistrer les paramètres',
+      userManagement: 'Gestion des utilisateurs',
+      systemSettings: 'Paramètres système',
     }
   };
 
@@ -284,13 +308,22 @@ const AdminPage: React.FC = () => {
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      let imageUrl = productForm.image_url;
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `product_${Date.now()}.${fileExt}`;
+        const { data, error } = await storage.uploadFile('product-images', fileName, imageFile);
+        if (error) throw error;
+        const { data: urlData } = storage.getPublicUrl('product-images', fileName);
+        imageUrl = urlData.publicUrl;
+      }
       const productData = {
         ...productForm,
+        image_url: imageUrl,
         price: parseInt(productForm.price),
         stock: parseInt(productForm.stock),
         id: `prod_${Date.now()}`
       };
-      
       await db.createProduct(productData);
       alert(t.itemAdded);
       setShowAddProduct(false);
@@ -305,6 +338,7 @@ const AdminPage: React.FC = () => {
         stock: '',
         active: true
       });
+      setImageFile(null);
       loadAdminData();
     } catch (error) {
       console.error('Error adding product:', error);
@@ -486,7 +520,7 @@ const AdminPage: React.FC = () => {
               { id: 'categories', label: t.categories, icon: Gift },
               { id: 'users', label: t.users, icon: Users },
               { id: 'orders', label: t.orders, icon: ShoppingCart },
-              { id: 'settings', label: t.systemSettings, icon: Settings },
+              { id: 'settings', label: t.themeSettings, icon: Settings },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1144,7 +1178,7 @@ const AdminPage: React.FC = () => {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">{t.systemSettings}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t.themeSettings}</h2>
             
             {/* Theme Settings */}
             <div className="bg-white rounded-xl shadow-lg p-6">
@@ -1187,7 +1221,7 @@ const AdminPage: React.FC = () => {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <Settings className="w-6 h-6 text-green-600" />
-                <h3 className="text-xl font-semibold text-gray-900">{t.appSettings}</h3>
+                <h3 className="text-xl font-semibold text-gray-900">{t.settings}</h3>
               </div>
               
               <form onSubmit={handleSaveSettings} className="space-y-6">
@@ -1280,7 +1314,7 @@ const AdminPage: React.FC = () => {
                 
                 <div className="pt-4">
                   <Button type="submit" className="w-full md:w-auto">
-                    {t.saveSettings}
+                    {t.settings}
                   </Button>
                 </div>
               </form>

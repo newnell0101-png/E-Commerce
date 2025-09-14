@@ -93,7 +93,7 @@ const OrdersPage: React.FC = () => {
       
       // Try multiple approaches to get orders
       let ordersData = null;
-      let orderItems = {};
+      let orderItems: Record<string, any[]> = {};
       
       // First try: Get orders with items
       try {
@@ -349,7 +349,8 @@ const OrdersPage: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-4">{t.orderItems}</h3>
                     <div className="space-y-4">
-                      {selectedOrder.order_items?.map((item, index) => (
+                      {selectedOrder.order_items?.map(
+                        (item: any, index: number) => (
                         <div key={index} className="flex items-center justify-between py-4 border-b border-gray-200">
                           <div className="flex items-center space-x-4">
                             {item.product?.image_url && (

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Star, Gift, TrendingUp, Users, ShoppingBag } from 'lucide-react';
+import { Zap, Star, Gift, TrendingUp, Users, ShoppingBag, Brain, Video } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { db } from '../lib/supabase';
 import { Product, Category } from '../types';
 import { Button } from '../components/ui/Button';
 import { Footer } from '../components/ui/Footer';
+import { AIPersonalTrainer } from '../components/gamification/AIPersonalTrainer';
+import { VirtualFitnessCoach } from '../components/gamification/VirtualFitnessCoach';
 
 const HomePage: React.FC = () => {
   const { language, colorTheme, isAuthenticated, user } = useStore();
@@ -13,6 +15,8 @@ const HomePage: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAITrainer, setShowAITrainer] = useState(false);
+  const [showVirtualCoach, setShowVirtualCoach] = useState(false);
 
   const translations = {
     en: {
@@ -106,6 +110,32 @@ const HomePage: React.FC = () => {
   };
 
   const themeColors = getThemeColors();
+
+        {/* AI Features Banner */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4">
+          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold">🚀 New AI-Powered Features!</h2>
+              <p className="text-sm text-purple-100">Get personalized workouts and real-time form analysis</p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowAITrainer(true)}
+                className="bg-white/20 hover:bg-white/30 text-white flex items-center gap-2"
+              >
+                <Brain className="w-4 h-4" />
+                AI Trainer
+              </Button>
+              <Button
+                onClick={() => setShowVirtualCoach(true)}
+                className="bg-white/20 hover:bg-white/30 text-white flex items-center gap-2"
+              >
+                <Video className="w-4 h-4" />
+                Virtual Coach
+              </Button>
+            </div>
+          </div>
+        </div>
 
   return (
     <div className="min-h-screen">
@@ -257,9 +287,9 @@ const HomePage: React.FC = () => {
                 onClick={() => navigate(`/product/${product.id}`)}
                 className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group"
               >
-                {product.discount_percentage > 0 && (
+                {(product.discount_percentage ?? 0) > 0 && (
                   <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
-                    -{product.discount_percentage}%
+                    -{product.discount_percentage ?? 0}%
                   </div>
                 )}
                 
@@ -282,10 +312,10 @@ const HomePage: React.FC = () => {
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      {product.discount_percentage > 0 ? (
+                      {(product.discount_percentage ?? 0) > 0 ? (
                         <div className="flex items-center space-x-2">
                           <span className="text-2xl font-bold text-green-600">
-                            {Math.round(product.price * (1 - product.discount_percentage / 100)).toLocaleString()} FCFA
+                            {Math.round(product.price * (1 - (product.discount_percentage ?? 0) / 100)).toLocaleString()} FCFA
                           </span>
                           <span className="text-lg text-gray-500 line-through">
                             {product.price.toLocaleString()} FCFA
@@ -311,6 +341,16 @@ const HomePage: React.FC = () => {
       </section>
 
       <Footer />
+      {showAITrainer && (
+        <AIPersonalTrainer
+          userProducts={featuredProducts.filter(p => p.category_id === 'cat_sports')}
+          userLevel="Intermediate"
+          onClose={() => setShowAITrainer(false)}
+        />
+      )}
+      {showVirtualCoach && (
+        <VirtualFitnessCoach onClose={() => setShowVirtualCoach(false)} />
+      )}
     </div>
   );
 };
