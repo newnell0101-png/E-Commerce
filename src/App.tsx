@@ -7,6 +7,8 @@ import { auth, db } from './lib/supabase';
 import { LoadingScreen } from './components/ui/LoadingScreen';
 import { RewardNotification } from './components/gamification/RewardNotification';
 import { SurpriseModal } from './components/gamification/SurpriseModal';
+import { AdminChatSystem } from './components/chat/AdminChatSystem';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 // Lazy load pages for better performance
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -33,6 +35,8 @@ function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showSurprise, setShowSurprise] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatMinimized, setChatMinimized] = useState(true);
 
   useEffect(() => {
     initializeApp();
@@ -178,67 +182,78 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Header
-          onCartClick={() => setShowCart(true)}
-          onAuthClick={handleAuthClick}
-        />
-
-        <main className="flex-1">
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/shop" element={<ShopPage />} />
-              <Route path="/product/:id" element={<ProductPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/orders" element={<OrdersPage />} />
-            </Routes>
-          </Suspense>
-        </main>
-
-        {/* Reward Notifications */}
-        {getUnclaimedRewards().map(reward => (
-          <RewardNotification
-            key={reward.id}
-            reward={reward}
-            onClaim={() => db.claimReward(reward.id)}
+    <ErrorBoundary>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Header
+            onCartClick={() => setShowCart(true)}
+            onAuthClick={handleAuthClick}
           />
-        ))}
 
-        {/* Modals */}
-        <Suspense fallback={null}>
-          {showAuth && (
-            <Modal
-              isOpen={showAuth}
-              onClose={() => setShowAuth(false)}
-              title="Welcome to CameroonMart"
-              size="md"
-            >
-              <AuthModal onClose={() => setShowAuth(false)} />
-            </Modal>
-          )}
+          <main className="flex-1">
+            <Suspense fallback={<LoadingScreen />}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/product/:id" element={<ProductPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/orders" element={<OrdersPage />} />
+              </Routes>
+            </Suspense>
+          </main>
 
-          {showCart && (
-            <Modal
-              isOpen={showCart}
-              onClose={() => setShowCart(false)}
-              title="Shopping Cart"
-              size="xl"
-            >
-              <CartModal onClose={() => setShowCart(false)} />
-            </Modal>
-          )}
-
-          {showSurprise && (
-            <SurpriseModal
-              isOpen={showSurprise}
-              onClose={() => setShowSurprise(false)}
+          {/* Reward Notifications */}
+          {getUnclaimedRewards().map(reward => (
+            <RewardNotification
+              key={reward.id}
+              reward={reward}
+              onClaim={() => db.claimReward(reward.id)}
             />
-          )}
-        </Suspense>
-      </div>
-    </Router>
+          ))}
+
+          {/* Modals */}
+          <Suspense fallback={null}>
+            {showAuth && (
+              <Modal
+                isOpen={showAuth}
+                onClose={() => setShowAuth(false)}
+                title="Welcome to CameroonMart"
+                size="md"
+              >
+                <AuthModal onClose={() => setShowAuth(false)} />
+              </Modal>
+            )}
+
+            {showCart && (
+              <Modal
+                isOpen={showCart}
+                onClose={() => setShowCart(false)}
+                title="Shopping Cart"
+                size="xl"
+              >
+                <CartModal onClose={() => setShowCart(false)} />
+              </Modal>
+            )}
+
+            {showSurprise && (
+              <SurpriseModal
+                isOpen={showSurprise}
+                onClose={() => setShowSurprise(false)}
+              />
+            )}
+
+            {/* Chat System */}
+            {(isAuthenticated() || isAdmin()) && (
+              <AdminChatSystem
+                isMinimized={chatMinimized}
+                onToggleMinimize={() => setChatMinimized(!chatMinimized)}
+                onClose={() => setShowChat(false)}
+              />
+            )}
+          </Suspense>
+        </div>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

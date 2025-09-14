@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Filter, Grid, List, Star, ShoppingCart } from 'lucide-react';
+import { VoiceSearch } from '../components/voice/VoiceSearch';
 import { useStore } from '../store/useStore';
 import { db } from '../lib/supabase';
 import { Product, Category } from '../types';
@@ -19,11 +20,13 @@ const ShopPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [sortBy, setSortBy] = useState('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showVoiceSearch, setShowVoiceSearch] = useState(false);
 
   const translations = {
     en: {
       shop: 'Shop',
       searchPlaceholder: 'Search products...',
+      voiceSearch: 'Voice Search',
       allCategories: 'All Categories',
       sortBy: 'Sort by',
       newest: 'Newest',
@@ -41,6 +44,7 @@ const ShopPage: React.FC = () => {
     fr: {
       shop: 'Boutique',
       searchPlaceholder: 'Rechercher des produits...',
+      voiceSearch: 'Recherche Vocale',
       allCategories: 'Toutes les Catégories',
       sortBy: 'Trier par',
       newest: 'Plus Récent',
@@ -129,6 +133,11 @@ const ShopPage: React.FC = () => {
     addToCart(product);
   };
 
+  const handleVoiceSearch = (query: string) => {
+    setSearchTerm(query);
+    setShowVoiceSearch(false);
+  };
+
   const getThemeColors = () => {
     const themes = {
       blue: { primary: 'bg-blue-600', secondary: 'bg-blue-50', text: 'text-blue-600' },
@@ -169,6 +178,15 @@ const ShopPage: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVoiceSearch(true)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                title={t.voiceSearch}
+              >
+                🎤
+              </Button>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -330,6 +348,17 @@ const ShopPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Voice Search Modal */}
+      {showVoiceSearch && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <VoiceSearch
+            onSearch={handleVoiceSearch}
+            onClose={() => setShowVoiceSearch(false)}
+            placeholder={t.searchPlaceholder}
+          />
+        </div>
+      )}
 
       <Footer />
     </div>

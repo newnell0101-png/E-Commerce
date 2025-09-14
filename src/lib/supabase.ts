@@ -237,6 +237,165 @@ export const db = {
     }
   },
 
+  // Voice Search
+  logVoiceSearch: (searchData: any) => {
+    try {
+      return supabase.from("voice_search_logs").insert(searchData);
+    } catch (error) {
+      console.warn('voice_search_logs table not found');
+      return Promise.resolve({ data: null, error: null });
+    }
+  },
+
+  // Comments System
+  getProductComments: (productId: string) => {
+    try {
+      return supabase
+        .from("comments")
+        .select(`
+          *,
+          user:profiles(full_name, email),
+          votes:comment_votes(vote_type)
+        `)
+        .eq("product_id", productId)
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
+    } catch (error) {
+      console.warn('comments table not found, returning empty result');
+      return Promise.resolve({ data: [], error: null });
+    }
+  },
+
+  createComment: (commentData: any) => {
+    try {
+      return supabase.from("comments").insert(commentData).select().single();
+    } catch (error) {
+      console.warn('comments table not found');
+      return Promise.resolve({ data: null, error: null });
+    }
+  },
+
+  updateComment: (commentId: string, updates: any) => {
+    try {
+      return supabase.from("comments").update(updates).eq("id", commentId);
+    } catch (error) {
+      console.warn('comments table not found');
+      return Promise.resolve({ data: null, error: null });
+    }
+  },
+
+  deleteComment: (commentId: string) => {
+    try {
+      return supabase.from("comments").delete().eq("id", commentId);
+    } catch (error) {
+      console.warn('comments table not found');
+      return Promise.resolve({ data: null, error: null });
+    }
+  },
+
+  voteComment: (commentId: string, userId: string, voteType: 'upvote' | 'downvote') => {
+    try {
+      return supabase.from("comment_votes").upsert({
+        comment_id: commentId,
+        user_id: userId,
+        vote_type: voteType
+      });
+    } catch (error) {
+      console.warn('comment_votes table not found');
+      return Promise.resolve({ data: null, error: null });
+    }
+  },
+
+  // Chat System
+  getAllChatSessions: () => {
+    try {
+      return supabase
+        .from("chat_sessions")
+        .select(`
+          *,
+          user:profiles!chat_sessions_user_id_fkey(full_name, email),
+          admin:profiles!chat_sessions_admin_id_fkey(full_name, email)
+        `)
+        .order("updated_at", { ascending: false });
+    } catch (error) {
+      console.warn('chat_sessions table not found, returning empty result');
+      return Promise.resolve({ data: [], error: null });
+    }
+  },
+
+  getUserChatSessions: (userId: string) => {
+    try {
+      return supabase
+        .from("chat_sessions")
+        .select(`
+          *,
+          admin:profiles!chat_sessions_admin_id_fkey(full_name, email)
+        `)
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false });
+    } catch (error) {
+      console.warn('chat_sessions table not found, returning empty result');
+      return Promise.resolve({ data: [], error: null });
+    }
+  },
+
+  createChatSession: (sessionData: any) => {
+    try {
+      return supabase.from("chat_sessions").insert(sessionData).select().single();
+    } catch (error) {
+      console.warn('chat_sessions table not found');
+      return Promise.resolve({ data: null, error: null });
+    }
+  },
+
+  updateChatSession: (sessionId: string, updates: any) => {
+    try {
+      return supabase.from("chat_sessions").update(updates).eq("id", sessionId);
+    } catch (error) {
+      console.warn('chat_sessions table not found');
+      return Promise.resolve({ data: null, error: null });
+    }
+  },
+
+  getChatMessages: (sessionId: string) => {
+    try {
+      return supabase
+        .from("chat_messages")
+        .select(`
+          *,
+          sender:profiles(full_name, email)
+        `)
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: true });
+    } catch (error) {
+      console.warn('chat_messages table not found, returning empty result');
+      return Promise.resolve({ data: [], error: null });
+    }
+  },
+
+  sendChatMessage: (messageData: any) => {
+    try {
+      return supabase.from("chat_messages").insert(messageData).select().single();
+    } catch (error) {
+      console.warn('chat_messages table not found');
+      return Promise.resolve({ data: null, error: null });
+    }
+  },
+
+  markMessagesAsRead: (sessionId: string, userId: string) => {
+    try {
+      return supabase
+        .from("chat_messages")
+        .update({ read_at: new Date().toISOString() })
+        .eq("session_id", sessionId)
+        .neq("sender_id", userId)
+        .is("read_at", null);
+    } catch (error) {
+      console.warn('chat_messages table not found');
+      return Promise.resolve({ data: null, error: null });
+    }
+  },
+
   // Admin functions
   createUser: async (userData: any) => {
     // In a real app, you'd use supabase.auth.admin.createUser

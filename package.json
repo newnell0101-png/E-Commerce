@@ -18,6 +18,7 @@
     "@react-three/fiber": "^8.18.0",
     "@supabase/supabase-js": "^2.56.0",
     "clsx": "^2.1.1",
+    "date-fns": "^2.30.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

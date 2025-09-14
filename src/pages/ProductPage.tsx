@@ -6,6 +6,7 @@ import { db, supabase } from '../lib/supabase';
 import { Product } from '../types';
 import { Button } from '../components/ui/Button';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { CommentSection } from '../components/comments/CommentSection';
 
 const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -354,6 +355,11 @@ const ProductPage: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Comments Section */}
+        <div className="mt-12">
+          <CommentSection productId={id!} allowRating={true} />
         </div>
       </div>
     </div>
